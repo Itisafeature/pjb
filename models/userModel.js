@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+const bcrypt = require('bcrypt');
 
 const userSchema = new mongoose.Schema({
   username: {
@@ -50,6 +51,12 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords do not match',
     },
   },
+});
+
+userSchema.pre('save', async function (next) {
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+  next();
 });
 
 module.exports = mongoose.model('User', userSchema);
