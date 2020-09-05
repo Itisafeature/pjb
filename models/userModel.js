@@ -53,6 +53,11 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.methods.comparePassword = async function (req) {
+  const result = await bcrypt.compare(req.body.password, this.password);
+  if (!result) throw new Error('Invalid Credentials');
+};
+
 userSchema.pre('save', async function (next) {
   this.password = await bcrypt.hash(this.password, 12);
   this.passwordConfirm = undefined;
