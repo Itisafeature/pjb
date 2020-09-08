@@ -30,7 +30,7 @@ exports.signup = catchAsync(async (req, res, next) => {
   user.password = undefined;
   user.passwordConfirm = undefined;
 
-  createAndSendToken(user, 201, req);
+  createAndSendToken(user, 201, res);
 });
 
 exports.login = async (req, res, next) => {
