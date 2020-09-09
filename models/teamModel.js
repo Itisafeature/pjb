@@ -1,12 +1,12 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
 
-const userSchema = new mongoose.Schema({
-  username: {
+const teamSchema = new mongoose.Schema({
+  name: {
     type: String,
-    required: [true, 'Must have a username'],
-    minLength: [5, 'Username must be at least 5 characters long'],
-    maxLength: [15, 'Username can be a maximum of 15 characters long'],
+    required: [true, 'Organization must have a name'],
+    minLength: [3, 'Name must be at least 3 characters long'],
+    maxLength: [30, 'Name can be a maximum of 30 characters long'],
     index: {
       unique: true,
       collation: {
@@ -14,10 +14,6 @@ const userSchema = new mongoose.Schema({
         strength: 2,
       },
     },
-    match: [
-      /^[a-zA-Z0-9-_]+$/,
-      'Usernames may only contain letters, numbers, undercores and dashes',
-    ],
   },
   email: {
     type: String,
@@ -51,21 +47,10 @@ const userSchema = new mongoose.Schema({
       message: 'Passwords do not match',
     },
   },
-  team: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Team',
-  },
+  users: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+    },
+  ],
 });
-
-userSchema.methods.comparePassword = async function (req) {
-  const result = await bcrypt.compare(req.body.password, this.password);
-  if (!result) throw new Error('Invalid Credentials');
-};
-
-userSchema.pre('save', async function (next) {
-  this.password = await bcrypt.hash(this.password, 12);
-  this.passwordConfirm = undefined;
-  next();
-});
-
-module.exports = mongoose.model('User', userSchema);
