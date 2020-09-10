@@ -47,6 +47,7 @@ const teamSchema = new mongoose.Schema({
       message: 'Passwords do not match',
     },
   },
+  code: String,
   users: [
     {
       type: mongoose.Schema.Types.ObjectId,
@@ -54,3 +55,16 @@ const teamSchema = new mongoose.Schema({
     },
   ],
 });
+
+teamSchema.methods.comparePassword = async function (req) {
+  const result = await bcrypt.compare(req.body.password, this.password);
+  if (!result) throw new Error('Invalid Credentials');
+};
+
+teamSchema.pre('save', async function (next) {
+  this.password = await bcrypt.hash(this.password, 12);
+  this.passwordConfirm = undefined;
+  next();
+});
+
+module.exports = mongoose.model('Team', teamSchema);

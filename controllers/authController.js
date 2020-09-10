@@ -1,9 +1,11 @@
 const jwt = require('jsonwebtoken');
+const randomstring = require('randomstring');
 const catchAsync = require('../utils/catchAsync');
 const User = require('../models/userModel');
+const Team = require('../models/teamModel');
 
-const createAndSendToken = (user, status, res) => {
-  const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET_KEY, {
+const createAndSendToken = (obj, status, res) => {
+  const token = jwt.sign({ id: obj._id }, process.env.JWT_SECRET_KEY, {
     expiresIn: '7d',
   });
 
@@ -14,23 +16,33 @@ const createAndSendToken = (user, status, res) => {
 
   res.status(status).json({
     status: 'success',
-    user,
+    data: obj,
   });
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
-  const user = await User.create({
-    username: req.body.username,
-    email: req.body.email,
-    password: req.body.password,
-    passwordConfirm: req.body.passwordConfirm,
-  });
-
-  // Remove from output
-  user.password = undefined;
-  user.passwordConfirm = undefined;
-
-  createAndSendToken(user, 201, res);
+  if (req.baseUrl.includes('/users')) {
+    const user = await User.create({
+      username: req.body.username,
+      email: req.body.email,
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+    });
+    // Remove from output
+    user.password = undefined;
+    user.passwordConfirm = undefined;
+    createAndSendToken(user, 201, res);
+  } else {
+    let team = await Team.create({
+      name: req.body.name,
+      email: req.body.email,
+      code: randomstring.generate(7),
+      password: req.body.password,
+      passwordConfirm: req.body.passwordConfirm,
+    });
+    team.password = undefined;
+    createAndSendToken(team, 201, res);
+  }
 });
 
 exports.login = async (req, res, next) => {
