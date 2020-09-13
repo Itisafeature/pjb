@@ -33,7 +33,7 @@ exports.signup = catchAsync(async (req, res, next) => {
     user.passwordConfirm = undefined;
     createAndSendToken(user, 201, res);
   } else {
-    let team = await Team.create({
+    const team = await Team.create({
       name: req.body.name,
       email: req.body.email,
       code: randomstring.generate(7),
