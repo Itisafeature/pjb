@@ -57,6 +57,15 @@ const userSchema = new mongoose.Schema({
   },
 });
 
+userSchema.methods.getFields = function () {
+  const obj = {
+    _id: this._id,
+    username: this.username,
+    email: this.email,
+  };
+  return obj;
+};
+
 userSchema.methods.comparePassword = async function (req) {
   const result = await bcrypt.compare(req.body.password, this.password);
   if (!result) throw new Error('Invalid Credentials');
@@ -68,4 +77,4 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
-module.exports = userSchema;
+module.exports = mongoose.model('User', userSchema);

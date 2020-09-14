@@ -43,13 +43,24 @@ const teamSchema = new mongoose.Schema({
     required: [true, 'Please confirm password'],
     validate: {
       validator: function (el) {
-        return el === this.password;
+        if (this.isNew) {
+          return el === this.password;
+        }
+        return true;
       },
       message: 'Passwords do not match',
     },
   },
-  code: String,
-  users: [userSchema],
+  code: {
+    type: String,
+    select: false,
+  },
+  users: [
+    {
+      type: mongoose.Schema.ObjectId,
+      ref: 'User',
+    },
+  ],
 });
 
 teamSchema.methods.comparePassword = async function (req) {
@@ -58,8 +69,10 @@ teamSchema.methods.comparePassword = async function (req) {
 };
 
 teamSchema.pre('save', async function (next) {
-  this.password = await bcrypt.hash(this.password, 12);
-  this.passwordConfirm = undefined;
+  if (this.isNew) {
+    this.password = await bcrypt.hash(this.password, 12);
+    this.passwordConfirm = undefined;
+  }
   next();
 });
 

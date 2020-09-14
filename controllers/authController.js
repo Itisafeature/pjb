@@ -5,6 +5,7 @@ const User = require('../models/userModel');
 const Team = require('../models/teamModel');
 
 const createAndSendToken = (obj, status, res) => {
+  console.log(obj);
   const token = jwt.sign({ id: obj._id }, process.env.JWT_SECRET_KEY, {
     expiresIn: '7d',
   });
@@ -14,28 +15,28 @@ const createAndSendToken = (obj, status, res) => {
     secure: true,
   });
 
+  obj.code = undefined;
+
   res.status(status).json({
     status: 'success',
-    data: obj,
+    obj,
   });
 };
 
 exports.signup = catchAsync(async (req, res, next) => {
   if (req.baseUrl.includes('/users')) {
     const team = await Team.findOne({ code: req.body.code });
-    console.log(req.body);
-    team.users.push({
+    let user = await User.create({
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
+      team,
     });
-    await team.save();
-    const user = User.findOne({ username: req.body.username });
-    console.log(user);
-    // Remove from output
-    user.password = undefined;
-    user.passwordConfirm = undefined;
+    team.users.push(user._id);
+    await team.save({ validateBeforeSave: false });
+    user = user.getFields();
+
     createAndSendToken(user, 201, res);
   } else {
     const team = await Team.create({
