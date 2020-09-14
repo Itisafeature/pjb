@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const bcrypt = require('bcrypt');
+const userSchema = require('./userModel');
 
 const teamSchema = new mongoose.Schema({
   name: {
@@ -48,12 +49,7 @@ const teamSchema = new mongoose.Schema({
     },
   },
   code: String,
-  users: [
-    {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-    },
-  ],
+  users: [userSchema],
 });
 
 teamSchema.methods.comparePassword = async function (req) {

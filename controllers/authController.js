@@ -22,12 +22,17 @@ const createAndSendToken = (obj, status, res) => {
 
 exports.signup = catchAsync(async (req, res, next) => {
   if (req.baseUrl.includes('/users')) {
-    const user = await User.create({
+    const team = await Team.findOne({ code: req.body.code });
+    console.log(req.body);
+    team.users.push({
       username: req.body.username,
       email: req.body.email,
       password: req.body.password,
       passwordConfirm: req.body.passwordConfirm,
     });
+    await team.save();
+    const user = User.findOne({ username: req.body.username });
+    console.log(user);
     // Remove from output
     user.password = undefined;
     user.passwordConfirm = undefined;
